@@ -144,6 +144,21 @@ async def settings(q: Q) -> None:
             ),
             ui.inline(
                 items=[
+                    ui.label("AWS end point", width=label_width),
+                    ui.textbox(
+                        name="default_aws_endpoint",
+                        label=None,
+                        value=q.client["default_aws_endpoint"],
+                        width=textbox_width,
+                        password=False,
+                        trigger=False,
+                        tooltip="Set the value for the AWS endpoint \
+                            for dataset import.",
+                    ),
+                ]
+            ),
+            ui.inline(
+                items=[
                     ui.label("Azure Datalake connection string", width=label_width),
                     ui.textbox(
                         name="default_azure_conn_string",

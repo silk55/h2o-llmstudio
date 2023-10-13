@@ -269,6 +269,7 @@ async def _save_secrets(q: Q):
         q.client["dataset/import/s3_bucket"] = q.client["default_aws_bucket_name"]
         q.client["dataset/import/s3_access_key"] = q.client["default_aws_access_key"]
         q.client["dataset/import/s3_secret_key"] = q.client["default_aws_secret_key"]
+        q.client["dataset/import/s3_endpoint"] = q.client["default_aws_endpoint"]
         q.client["dataset/import/kaggle_access_key"] = q.client[
             "default_kaggle_username"
         ]

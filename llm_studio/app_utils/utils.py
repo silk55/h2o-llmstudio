@@ -28,6 +28,7 @@ import psutil
 import yaml
 from azure.storage.filedatalake import DataLakeServiceClient
 from boto3.session import Session
+import botocore
 from botocore.handlers import disable_signing
 from datasets import load_dataset
 from h2o_wave import Q, ui
@@ -178,7 +179,7 @@ def clean_macos_artifacts(path: str) -> None:
             pass
 
 
-def s3_session(aws_access_key: str, aws_secret_key: str) -> Any:
+def s3_session(aws_access_key: str, aws_secret_key: str, endpoint_url: str) -> Any:
     """Establishes s3 session
 
     Args:
@@ -191,9 +192,10 @@ def s3_session(aws_access_key: str, aws_secret_key: str) -> Any:
     """
 
     session = Session(
-        aws_access_key_id=aws_access_key, aws_secret_access_key=aws_secret_key
+        aws_access_key_id=aws_access_key, aws_secret_access_key=aws_secret_key, region_name= "cn-beijing"
     )
-    s3 = session.resource("s3")
+    config = botocore.client.Config(s3={'addressing_style': 'virtual'})
+    s3 = session.resource("s3",endpoint_url=endpoint_url,config=config)
     # if no key is present, disable signing
     if aws_access_key == "" and aws_secret_key == "":
         s3.meta.client.meta.events.register("choose-signer.s3.*", disable_signing)
@@ -212,7 +214,7 @@ def filter_valid_files(files):
 
 
 def s3_file_options(
-    bucket: str, aws_access_key: str, aws_secret_key: str
+    bucket: str, aws_access_key: str, aws_secret_key: str, aws_endpoint: str
 ) -> Optional[List[str]]:
     """ "Returns all zip files in the target s3 bucket
 
@@ -233,7 +235,7 @@ def s3_file_options(
 
         bucket_split = bucket.split(os.sep)
         bucket = bucket_split[0]
-        s3 = s3_session(aws_access_key, aws_secret_key)
+        s3 = s3_session(aws_access_key, aws_secret_key,aws_endpoint)
         s3_bucket = s3.Bucket(bucket)
 
         folder = "/".join(bucket_split[1:])
@@ -356,7 +358,7 @@ def extract_if_zip(file, actual_path):
 
 
 async def s3_download(
-    q, bucket, filename, aws_access_key, aws_secret_key
+    q, bucket, filename, aws_access_key, aws_secret_key, aws_endpoint
 ) -> Tuple[str, str]:
     """Downloads a file from s3
 
@@ -376,7 +378,7 @@ async def s3_download(
 
     bucket = bucket.split(os.sep)[0]
 
-    s3 = s3_session(aws_access_key, aws_secret_key)
+    s3 = s3_session(aws_access_key, aws_secret_key, aws_endpoint)
 
     file, s3_path = s3_download_coroutine(q, filename)
 
